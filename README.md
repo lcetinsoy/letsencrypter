@@ -2,7 +2,7 @@
 
 ### Not ready ! Your help is welcome
 
-A small script to easy letsencrypt workflow for nginx setup
+A small script to ease letsencrypt workflow for nginx setup
 
 Not everything is automated you will have still to manually edit your vhost
 so it fits your setup.
@@ -15,7 +15,7 @@ so it fits your setup.
 - add location for https with all ssl parameters
 
 
-What it does not do :
+What it does not:
 
 - Add a redirection in location from http to https
 
