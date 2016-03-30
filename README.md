@@ -15,9 +15,10 @@ so it fits your setup.
 - add location for https with all ssl parameters
 
 
-What it does not:
+What it does not (yet):
 
 - Add a redirection in location from http to https
+- Generate certificates in one shot for multi domain with several "-d" arguments
 
 ## Installation
 
@@ -33,4 +34,4 @@ $ ./letsencrypter-nginx.sh
 
 ## Contribute
 
-Fork and pull requestion. No tests automated test for now. I know, I'm no good
+Fork and pull request. No tests automated test for now. I know, I'm no good
