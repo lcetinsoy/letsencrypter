@@ -1,6 +1,6 @@
 # letsencrypter
 
-### Not ready ! Your help is welcome
+###  In Beta, your help is welcome !
 
 A small script to ease letsencrypt workflow for nginx setup
 
