@@ -32,3 +32,7 @@ $ letsencrypter-nginx.sh
 ## Contribute
 
 Fork and pull request. No tests automated test for now. I know, I'm no good
+
+## Licence
+
+MIT
