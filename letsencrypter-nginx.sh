@@ -1,16 +1,9 @@
 #!/bin/bash
 
-source ./auto-renewal.sh
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $DIR/auto-renewal.sh
 
-install-letsencrypt () {
-
-  $installationPath = $0
-
-  git clone https://github.com/letsencrypt/letsencrypt $installationPath
-
-}
-
-if ( ! type letsencrypt-auto > /dev/null 2>&1 ); then
+if [ ! type letsencrypt-auto > /dev/null 2>&1 ]; then
 
   echo "letsencrypt-auto was not found"
   echo "do you want to it to be installed automatically y/n?"
@@ -38,22 +31,34 @@ read documentRoot
 echo "nginx site vhost absolute path"
 read nginxVhost
 
+
 #for lets encrypt process
-echo "location ~ /\.well-known/acme-challenge {
-        allow all;
-    }" >> $nginxVhost
 
+substitution="location ~ /\\\.well-known/acme-challenge { allow all; }"
+sudo sed --in-place -re "s|server \{|server \{\n\n    $substitution|" $nginxVhost || {  echo "file $nginxVhost cannot be written. exiting"; exit 1; }
 
-sudo letsencrypt-auto certonly --rsa-key-size 4096 --webroot \
+sudo nginx -t && sudo service nginx reload || { echo "invalid nginx configuration please check your vhost; exiting"; exit 1; }
+
+echo "asking letsencrypt for certificates..."
+letsencrypt-auto certonly --rsa-key-size 4096 --webroot \
      --webroot-path $documentRoot \
-     -d $domain
+     -d $domain || { echo "error during certificate requests. exiting"; exit 1; } 
+echo "the certificates were successfully downloaded. you can find them in /etc/letsencrypt/live"
 
-sudo nginx -t && sudo service nginx reload
+echo "do you want to add certificate auto renewal with a cron job  (certificates only last 3 months)? y/n"
+read autoRenew
+if [ "y" = "$autoRenew" ]; then
 
-echo "server {
+  add-auto-renewal-cronjob
+fi
+echo "done"
+
+
+substitution="location / { return 301 https://$domain\$request_uri; }"
+sslServer="server {
 
          listen 443 ssl;
-         listen [::]:443 ssl default_server;
+         listen [::]:443 ssl;
          server_name $domain
          ssl on;
          ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
@@ -62,20 +67,31 @@ echo "server {
          root $documentRoot;
          # Add index.php to the list if you are using PHP
          index index.html index.htm index.nginx-debian.html;
+}"
 
 
-}" >> $nginxVhost
+echo "the following configuration snippets might be usefull,
+ do you want to be added automatically to your vhost ? (y/n)"
 
-sudo nginx -t && sudo service nginx reload || echo "an error occured"
+echo $substitution
+echo $sslServer
 
-echo "do you want to add certificate auto renewal with a cron job  ? y/n"
+echo "notice: some additional editing might be required"
+read autoConf
 
-read autoRenew
-if [ "y" = "$autoRenew" ]; then
+if [ "y" = "$autoConf"]; then
 
-  add-auto-renewal-cronjob
+   echo "adding http to https redirection"
+   sudo sed --in-place -re "s|server \{| server {\n\n    $substitution|" $nginxVhost
+   echo "done"
+
+   echo "adding server directive for ssl"
+   echo $sslServer | sudo tee --append $nginxVhost > /dev/null
+   echo "done"
+
+   echo "reload nginx configuration"
+   sudo nginx -t && sudo service nginx reload || { echo "the new configuration needs additional edition for working"; }
 fi
 
-echo "Done."
-echo "Please check that your nginx config file is the way you want and edit it accordingly"
-echo "Not everything is automated yet"
+
+echo "end of script, please check your setup"

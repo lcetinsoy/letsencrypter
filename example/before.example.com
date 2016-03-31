@@ -1,4 +1,6 @@
-server {
+server {/
+
+    location ~ /\.well-known/acme-challenge { allow all; }
 
     root /var/www/myapp.com
     server_name myapp.com
