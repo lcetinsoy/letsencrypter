@@ -2,22 +2,22 @@
 
 server {
 
+    location / { return 301 https://myapp.com$request_uri; }
+
+    location ~ /\.well-known/acme-challenge { allow all; }
+
     root /var/www/myapp.com
     server_name myapp.com
 
     index app.php;
 
-    location / {
-
-	     try_files $uri /app.php$is_args$args;
-    }
 
     error_log /var/www/myapp.com/project_error.log;
     access_log /var/www/myapp.com/logs/project_access.log;
 
     location / {
 
-       try_files $uri /app_dev.php$is_args$args;
+       try_files $uri /app.php$is_args$args;
     }
 
 }
